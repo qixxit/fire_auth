@@ -48,7 +48,7 @@ defmodule FireAuth.KeyServer do
 
   defp fetch_keybase() do
     Logger.info(fn -> "Fetching Keybase for FireAuth...." end)
-    FireAuth.Util.http_client.get!(@cert_url).body
+    FireAuth.Util.http_client.get!(@cert_url, recv_timeout: 10_000).body
     |> Poison.decode!
   end
 end
