@@ -31,6 +31,6 @@ defmodule FireAuth.Util do
   Mocks the client library for tests.
   """
   def http_client() do
-    Application.get_env(:fire_auth, :http_client) || HTTPotion
+    Application.get_env(:fire_auth, :http_client) || HTTPoison
   end
 end

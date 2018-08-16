@@ -10,23 +10,23 @@ defmodule FireAuth.Mixfile do
       deps: deps(),
       package: package(),
       description: description(),
-      source_url: "https://github.com/FritzFlorian/fire_auth"
+      source_url: "https://github.com/qixxit/fire_auth"
     ]
   end
 
   def application do
     [
-      extra_applications: [:logger, :httpotion, :poison],
+      extra_applications: [:logger],
       mod: {FireAuth.Application, []}
     ]
   end
 
   defp deps do
     [
-      {:plug, "~> 1.0"},
-      {:httpotion, "~> 3.0.0"},
-      {:poison, "~> 3.1"},
-      {:joken, "~> 1.1"},
+      {:plug, "~> 1.6"},
+      {:joken, "~> 1.5"},
+      {:httpoison, "~> 1.1"},
+      {:poison, "~> 3.0"},
       {:ex_doc, ">= 0.0.0", only: :dev}
     ]
   end
