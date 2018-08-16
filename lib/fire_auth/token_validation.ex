@@ -35,12 +35,14 @@ defmodule FireAuth.TokenValidation do
   defp check_token_claims(claims) do
     check_token_claims_exp(claims) &&
     check_token_claims_iat(claims) &&
+    check_token_claims_auth_time(claims) &&
     check_token_claims_aud(claims) &&
     check_token_claims_iss(claims)
   end
 
   defp check_token_claims_exp(claims), do: Util.current_time() <= claims["exp"]
   defp check_token_claims_iat(claims), do: Util.current_time() >= claims["iat"]
+  defp check_token_claims_auth_time(claims), do: Util.current_time() >= claims["auth_time"]
   defp check_token_claims_aud(claims), do: project_id() == claims["aud"]
   defp check_token_claims_iss(claims), do: "https://securetoken.google.com/#{project_id()}" == claims["iss"]
 
