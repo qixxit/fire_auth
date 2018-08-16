@@ -26,15 +26,27 @@ defmodule FireAuth.KeyServer do
 
   # Server Implementation
   def init(:ok) do
+    GenServer.cast(__MODULE__, :load_keybase)
     {:ok, %{keybase: nil, last_update: 0}}
   end
 
+  def handle_cast(:load_keybase, state) do
+    try do
+      keybase = fetch_keybase()
+      newstate = %{keybase: keybase, last_update: :os.system_time(:millisecond)}
+      {:noreply, newstate}
+    rescue 
+      e -> 
+        Logger.error("Failed reading firebase keybase #{inspect(e)}")
+        {:noreply, state}
+    end
+  end
+  
   def handle_call(:get_keybase, _from, %{keybase: keybase, last_update: last_update} = state) do
     if last_update + @fetch_interval > :os.system_time(:millisecond) do
       {:reply, keybase, state}
     else
-      keybase = fetch_keybase()
-      state = %{keybase: keybase, last_update: :os.system_time(:millisecond)}
+      GenServer.cast(__MODULE__, :load_keybase)
       {:reply, keybase, state}
     end
   end
