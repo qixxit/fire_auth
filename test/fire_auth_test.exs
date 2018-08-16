@@ -8,62 +8,13 @@ defmodule FireAuthTest do
   defmodule TestRouter do
     use Plug.Router
 
-    plug FireAuth, [load_user: &TestRouter.load_user/1, load_groups: &TestRouter.load_groups/2]
+    plug FireAuth
 
     match _, do: send_resp(conn, 200, "")
 
-    def load_user(%{id: "some id"}) do
-      %{
-        name: "some name",
-        id: "some id",
-        groups: ["manager"]
-      }
-    end
-
-    def load_user(%{id: "8nin8EPAQ3TMgHxHXJetMtGcHle2"}) do
-      %{
-        name: nil,
-        id: "8nin8EPAQ3TMgHxHXJetMtGcHle2",
-        groups: []
-      }
-    end
-
-    def load_user(%{"sub" => "8nin8EPAQ3TMgHxHXJetMtGcHle2"}) do
-      %{
-        name: "some name",
-        id: "8nin8EPAQ3TMgHxHXJetMtGcHle2",
-        groups: ["manager"]
-      }
-    end
-
-    def load_groups(_info, %{groups: groups}) do
-      groups
-    end
   end
 
   @opts TestRouter.init([])
-
-  test "groups are loaded correctly" do
-    conn = conn(:get, "/some_route")
-            |> assign(:fire_auth_user, %{groups: ["admin"]})
-            |> TestRouter.call(@opts)
-
-    assert conn.assigns.fire_auth.authenticated
-    assert %{groups: ["admin"]} == conn.assigns.fire_auth.user
-    assert ["admin"] == conn.assigns.fire_auth.groups
-  end
-
-  test "user is loaded correctly" do
-    conn = conn(:get, "some_route")
-            |> assign(:fire_auth_user, nil)
-            |> assign(:fire_auth_token_info, %{id: "some id"})
-            |> TestRouter.call(@opts)
-
-    assert conn.assigns.fire_auth.authenticated
-    assert %{name: "some name", id: "some id", groups: ["manager"]} ==
-              conn.assigns.fire_auth.user
-    assert ["manager"] == conn.assigns.fire_auth.groups
-  end
 
   test "authenticated is false without user set" do
     conn = conn(:get, "/some_route")
@@ -87,7 +38,7 @@ defmodule FireAuthTest do
             |> TestRouter.call(@opts)
 
     assert conn.assigns.fire_auth.authenticated
-    assert "8nin8EPAQ3TMgHxHXJetMtGcHle2" == conn.assigns.fire_auth.user.id
+    assert "8nin8EPAQ3TMgHxHXJetMtGcHle2" == conn.assigns.fire_auth.token_info["user_id"]
   end
 
   @tag :capture_log

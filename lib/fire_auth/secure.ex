@@ -30,6 +30,7 @@ defmodule FireAuth.Secure do
         if Enum.member?(fire_auth.groups , group) do
           conn
         else
+          IO.puts("auth but: #{inspect(conn.assigns)}")
           conn
             |> put_resp_content_type("application/json")
             |> resp(:forbidden, "{\"error\": \"Forbidden!\"}")
@@ -41,6 +42,7 @@ defmodule FireAuth.Secure do
   end
 
   def call(conn, _) do
+  IO.puts("#{inspect(conn.assigns)}")
     conn
       |> put_resp_content_type("application/json")
       |> resp(:unauthorized, "{\"error\": \"Authentication Required!\"}")
