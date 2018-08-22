@@ -19,16 +19,24 @@ defmodule FireAuth.TokenValidation do
   is returned.
   """
   def validate_token(token_string) do
-    token = Joken.token(token_string)
-    header = Joken.peek_header(token)
-
-    with {:ok, claims} <- verify_token(token, header) do
+    with {:ok, token, header} <- parse(token_string),
+         {:ok, claims} <- verify_token(token, header) do
       if check_token_claims(claims) do
         {:ok, claims}
       else
         {:error,
          "Token claims are invalid. (The token might be expired or the project_id might be wrong)"}
       end
+    end
+  end
+
+  defp parse(token_string) do
+    try do
+      token = Joken.token(token_string)
+      header = Joken.peek_header(token)
+      {:ok, token, header}
+    rescue
+      error -> {:error, error}
     end
   end
 
@@ -82,10 +90,10 @@ defmodule FireAuth.TokenValidation do
             {:ok, claims}
 
           %{error: error} ->
-            {:error, "Token verifikation failed. #{inspect(error)}"}
+            {:error, "Token verification failed. #{inspect(error)}"}
 
           _ ->
-            {:error, "Token verifikation failed. Unkonwn result."}
+            {:error, "Token verification failed. Unknown result."}
         end
     end
   end

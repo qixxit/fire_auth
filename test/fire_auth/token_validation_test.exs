@@ -38,7 +38,12 @@ defmodule FireAuth.TokenValidationTest do
 
   @tag :capture_log
   test "invalid_token returns error" do
-    assert {:error, "Token verifikation failed. \"Invalid signature\""} ==
+    assert {:error, "Token verification failed. \"Invalid signature\""} ==
              TokenValidation.validate_token(@invalid_token)
+  end
+
+  @tag :capture_log
+  test "broken token string returns error" do
+    assert {:error, %ArgumentError{}} = TokenValidation.validate_token("xxxxxxx")
   end
 end
