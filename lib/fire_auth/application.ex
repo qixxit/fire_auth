@@ -5,7 +5,7 @@ defmodule FireAuth.Application do
   require Logger
 
   def start(_type, _args) do
-   import Supervisor.Spec
+    import Supervisor.Spec
 
     children = [
       worker(FireAuth.KeyServer, [])

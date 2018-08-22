@@ -7,14 +7,15 @@ defmodule FireAuth.KeyServer do
   require Logger
 
   # The interval to fetch a new keybase from google
-  @fetch_interval 1000 * 60 * 60 # one hour
+  # one hour
+  @fetch_interval 1000 * 60 * 60
   @cert_url "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com"
 
   @doc """
   Starts the registry.
   """
   def start_link() do
-    GenServer.start_link(__MODULE__, :ok, [name: FireAuth.KeyServer])
+    GenServer.start_link(__MODULE__, :ok, name: FireAuth.KeyServer)
   end
 
   @doc """
@@ -35,13 +36,13 @@ defmodule FireAuth.KeyServer do
       keybase = fetch_keybase()
       newstate = %{keybase: keybase, last_update: :os.system_time(:millisecond)}
       {:noreply, newstate}
-    rescue 
-      e -> 
+    rescue
+      e ->
         Logger.error("Failed reading firebase keybase #{inspect(e)}")
         {:noreply, state}
     end
   end
-  
+
   def handle_call(:get_keybase, _from, %{keybase: keybase, last_update: last_update} = state) do
     if last_update + @fetch_interval > :os.system_time(:millisecond) do
       {:reply, keybase, state}
@@ -52,7 +53,7 @@ defmodule FireAuth.KeyServer do
   end
 
   # ignore unknown info messages
-  def handle_info(_ , state) do
+  def handle_info(_, state) do
     {:ok, state}
   end
 
@@ -60,7 +61,8 @@ defmodule FireAuth.KeyServer do
 
   defp fetch_keybase() do
     Logger.info(fn -> "Fetching Keybase for FireAuth...." end)
-    FireAuth.Util.http_client.get!(@cert_url, recv_timeout: 10_000).body
-    |> Poison.decode!
+
+    FireAuth.Util.http_client().get!(@cert_url, recv_timeout: 10_000).body
+    |> Poison.decode!()
   end
 end

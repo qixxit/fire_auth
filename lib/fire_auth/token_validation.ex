@@ -26,25 +26,26 @@ defmodule FireAuth.TokenValidation do
       if check_token_claims(claims) do
         {:ok, claims}
       else
-        {:error, "Token claims are invalid. (The token might be expired or the project_id might be wrong)"}
+        {:error,
+         "Token claims are invalid. (The token might be expired or the project_id might be wrong)"}
       end
     end
   end
 
   # checks that all requirements are met for the token claims
   defp check_token_claims(claims) do
-    check_token_claims_exp(claims) &&
-    check_token_claims_iat(claims) &&
-    check_token_claims_auth_time(claims) &&
-    check_token_claims_aud(claims) &&
-    check_token_claims_iss(claims)
+    check_token_claims_exp(claims) && check_token_claims_iat(claims) &&
+      check_token_claims_auth_time(claims) && check_token_claims_aud(claims) &&
+      check_token_claims_iss(claims)
   end
 
   defp check_token_claims_exp(claims), do: Util.current_time() <= claims["exp"]
   defp check_token_claims_iat(claims), do: Util.current_time() >= claims["iat"]
   defp check_token_claims_auth_time(claims), do: Util.current_time() >= claims["auth_time"]
   defp check_token_claims_aud(claims), do: project_id() == claims["aud"]
-  defp check_token_claims_iss(claims), do: "https://securetoken.google.com/#{project_id()}" == claims["iss"]
+
+  defp check_token_claims_iss(claims),
+    do: "https://securetoken.google.com/#{project_id()}" == claims["iss"]
 
   # verifies a token using the keybase fetched from firebase.
   # returns
@@ -56,26 +57,33 @@ defmodule FireAuth.TokenValidation do
     case cert do
       nil ->
         {:error, "Could not find public certificate matching token kid."}
+
       cert ->
         jwk =
           cert
-          |> decode_cert() # decode the cert read from googles json
-          |> Util.otp_certificate(:tbsCertificate) # use records to get the part we need
+          # decode the cert read from googles json
+          |> decode_cert()
+          # use records to get the part we need
+          |> Util.otp_certificate(:tbsCertificate)
           |> Util.otptbs_certificate(:subjectPublicKeyInfo)
           |> Util.otp_subject_public_key_info(:subjectPublicKey)
-          |> JOSE.JWK.from_key() # create our JWK token form it
+          # create our JWK token form it
+          |> JOSE.JWK.from_key()
 
         # Validate the token
         # This returns the token with possible verify errors
-        verified_token = token
-                          |> Joken.with_signer(Joken.rs256(jwk))
-                          |> Joken.verify
+        verified_token =
+          token
+          |> Joken.with_signer(Joken.rs256(jwk))
+          |> Joken.verify()
 
         case verified_token do
           %{error: nil, claims: claims} ->
             {:ok, claims}
+
           %{error: error} ->
             {:error, "Token verifikation failed. #{inspect(error)}"}
+
           _ ->
             {:error, "Token verifikation failed. Unkonwn result."}
         end

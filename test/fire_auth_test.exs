@@ -8,34 +8,36 @@ defmodule FireAuthTest do
   defmodule TestRouter do
     use Plug.Router
 
-    plug FireAuth
+    plug(FireAuth)
 
-    match _, do: send_resp(conn, 200, "")
-
+    match(_, do: send_resp(conn, 200, ""))
   end
 
   @opts TestRouter.init([])
 
   test "authenticated is false without user set" do
-    conn = conn(:get, "/some_route")
-            |> TestRouter.call(@opts)
+    conn =
+      conn(:get, "/some_route")
+      |> TestRouter.call(@opts)
 
     refute conn.assigns.fire_auth.authenticated
   end
 
   test "refuses wrong token header" do
-    conn = conn(:get, "/some_route")
-           |> put_req_header("authorization", "wrong #{@valid_token}")
-           |> TestRouter.call(@opts)
+    conn =
+      conn(:get, "/some_route")
+      |> put_req_header("authorization", "wrong #{@valid_token}")
+      |> TestRouter.call(@opts)
 
     refute conn.assigns.fire_auth.authenticated
   end
 
   @tag :capture_log
   test "loads correct user when valid token is given in header" do
-    conn = conn(:get, "/some_route")
-            |> put_req_header("authorization", "Bearer #{@valid_token}")
-            |> TestRouter.call(@opts)
+    conn =
+      conn(:get, "/some_route")
+      |> put_req_header("authorization", "Bearer #{@valid_token}")
+      |> TestRouter.call(@opts)
 
     assert conn.assigns.fire_auth.authenticated
     assert "8nin8EPAQ3TMgHxHXJetMtGcHle2" == conn.assigns.fire_auth.token_info["user_id"]
@@ -43,11 +45,11 @@ defmodule FireAuthTest do
 
   @tag :capture_log
   test "refuses invalid token" do
-    conn = conn(:get, "/some_route")
-            |> put_req_header("authorization", "Bearer #{@invalid_token}")
-            |> TestRouter.call(@opts)
+    conn =
+      conn(:get, "/some_route")
+      |> put_req_header("authorization", "Bearer #{@invalid_token}")
+      |> TestRouter.call(@opts)
 
     refute conn.assigns.fire_auth.authenticated
   end
-
 end

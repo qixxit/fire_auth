@@ -19,6 +19,7 @@ defmodule FireAuth.Secure do
     case Keyword.fetch(opts, :group) do
       {:ok, group} ->
         %{group: group}
+
       _ ->
         %{}
     end
@@ -27,25 +28,28 @@ defmodule FireAuth.Secure do
   def call(%{assigns: %{fire_auth: %{authenticated: true} = fire_auth}} = conn, opts) do
     case opts do
       %{group: group} ->
-        if Enum.member?(fire_auth.groups , group) do
+        if Enum.member?(fire_auth.groups, group) do
           conn
         else
           IO.puts("auth but: #{inspect(conn.assigns)}")
+
           conn
-            |> put_resp_content_type("application/json")
-            |> resp(:forbidden, "{\"error\": \"Forbidden!\"}")
-            |> halt()
+          |> put_resp_content_type("application/json")
+          |> resp(:forbidden, "{\"error\": \"Forbidden!\"}")
+          |> halt()
         end
-      _ -> 
+
+      _ ->
         conn
     end
   end
 
   def call(conn, _) do
-  IO.puts("#{inspect(conn.assigns)}")
+    IO.puts("#{inspect(conn.assigns)}")
+
     conn
-      |> put_resp_content_type("application/json")
-      |> resp(:unauthorized, "{\"error\": \"Authentication Required!\"}")
-      |> halt()
+    |> put_resp_content_type("application/json")
+    |> resp(:unauthorized, "{\"error\": \"Authentication Required!\"}")
+    |> halt()
   end
 end
